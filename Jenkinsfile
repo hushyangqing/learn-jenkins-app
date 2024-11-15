@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     environment {
-        NETLIFY_SITE_ID = 'd2460cce-b72d-4fee-a84c-fe8a19665291'
-        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        // NETLIFY_SITE_ID = 'd2460cce-b72d-4fee-a84c-fe8a19665291'
+        // NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
     }
 
     stages {
 
+        /*
         stage('Build') {
             agent {
                 docker {
@@ -27,8 +28,9 @@ pipeline {
                 '''
             }
         }
+        */
 
-        stage('AWS') {
+        stage('Deploy to AWS') {
             agent {
                 docker {
                     image 'amazon/aws-cli'
@@ -43,13 +45,14 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                         aws --version
-                        echo "Hello S3!" > index.html
-                        aws s3 sync build s3://$AWS_S3_BUCKET
+                        aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json
+
                     '''
                 }
             }
         }
 
+        /*
         stage('Tests') {
             parallel {
                 stage('Unit tests') {
@@ -127,7 +130,6 @@ pipeline {
                 }
             }
         }
-        /*
         stage('Approval') {
             steps {
                 timeout(time: 15, unit: 'MINUTES') {
@@ -135,7 +137,7 @@ pipeline {
                 }
             }
         }
-        */
+        
 
         stage('Deploy prod') {
             agent {
@@ -166,5 +168,6 @@ pipeline {
                 }
             }
         }
+        */
     }
 }
